@@ -7,6 +7,7 @@ public class GameManagerScript : MonoBehaviour
     // 配列の宣言
     int[] map;
 
+
     // クラスの中、メソッドの外に書くことに注意
     void PrintArray()
     {
