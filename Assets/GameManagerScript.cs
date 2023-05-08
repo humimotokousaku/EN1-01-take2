@@ -1,91 +1,141 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManagerScript : MonoBehaviour
 {
-    // ”z—ñ‚ÌéŒ¾
-    int[] map;
-
-
-    // ƒNƒ‰ƒX‚Ì’†Aƒƒ\ƒbƒh‚ÌŠO‚É‘‚­‚±‚Æ‚É’ˆÓ
-    void PrintArray()
-    {
-        // ’Ç‰ÁB•¶š—ñ‚ÌéŒ¾‚Æ‰Šú‰»
-        string debugText = "";
-        for (int i = 0; i < map.Length; i++)
-        {
-            //// —v‘f”‚ğˆê‚Â‚¸‚Âo—Í
-            //Debug.Log(map[i] + ",");
-            //  •ÏXB•¶š—ñ‚ÉŒ‹‡‚µ‚Ä‚¢‚­
-            debugText += map[i].ToString() + ",";
-        }
-        Debug.Log(debugText);
-    }
-
-    // •Ô‚è’l‚ÌŒ^‚É’ˆÓ
-    int GetPlayerIndex()
-    {
-        for (int i = 0; i < map.Length; i++)
-        {
-            if (map[i] == 1)
-            {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    // 
-    bool MoveNumber(int number, int moveFrom, int moveTo)
-    {
-        if (moveTo < 0 || moveTo >= map.Length)
-        {
-            // “®‚¯‚È‚¢ğŒ‚ğæ‚É‘‚«AƒŠƒ^[ƒ“‚·‚éB‘ŠúƒŠƒ^[ƒ“
-            return false;
-        }
-        if (map[moveTo] == 2)
-        {
-            // ‚Ç‚Ì•ûŒü‚ÖˆÚ“®‚·‚é‚©Zo
-            int velocity = moveTo - moveFrom;
-            bool success = MoveNumber(2, moveTo, moveTo + velocity);
-            if (!success)
-            {
-                return false;
-            }
-        }
-        map[moveTo] = number;
-        map[moveFrom] = 0;
-        return true;
-    }
+    // é…åˆ—ã®å®£è¨€
+    public GameObject playerPrefab;
+    int[,] map; // ãƒ¬ãƒ™ãƒ«ãƒ‡ã‚¶ã‚¤ãƒ³ç”¨ã®é…åˆ—
+    GameObject[,] field; // ã‚²ãƒ¼ãƒ ç®¡ç†ç”¨ã®é…åˆ—
+    GameObject obj;
 
     // Start is called before the first frame update
     void Start()
     {
-        // ”z—ñ‚ÌÀ‘Ô‚Ì¶¬‚Æ‰Šú‰»
-        map = new int[] { 0, 0, 0, 1, 0, 2, 0, 0, 0 };
-        PrintArray();
+
+        // é…åˆ—ã®å®Ÿæ…‹ã®ç”Ÿæˆã¨åˆæœŸåŒ–
+        map = new int[,]
+        {
+            {0,0,0,0,0 },
+            {0,0,1,0,0 },
+            {0,0,0,0,0 }
+        };
+        field = new GameObject
+            [
+            map.GetLength(0),
+            map.GetLength(1)
+            ];
+
+        // string debugText = "";
+        // å¤‰æ›´ã€‚äºŒé‡foråˆ†ã§äºŒæ¬¡å…ƒé…åˆ—ã®æƒ…å ±ã‚’å‡ºåŠ›
+        for (int y = 0; y < map.GetLength(0); y++)
+        {
+            for (int x = 0; x < map.GetLength(1); x++)
+            {
+                if (map[y, x] == 1)
+                {
+                    //// player
+                    //GameObject instance = Instantiate(
+                    //    playerPrefab,
+                    //    new Vector3(x - 2, y, 0),
+                    //    Quaternion.identity
+                    //);
+                    field[y, x] = Instantiate(
+                        playerPrefab,
+                        new Vector3(x, map.GetLength(0) - y, 0),
+                        Quaternion.identity
+                        );
+                   
+                }
+            }
+        }
+    }
+
+    // è¿”ã‚Šå€¤ã®å‹ã«æ³¨æ„
+    Vector2Int GetPlayerIndex()
+    {
+        for (int y = 0; y < field.GetLength(0); y++)
+        {
+            for (int x = 0; x < field.GetLength(1); x++)
+                if (field[y, x] == null)
+                {
+                    continue;
+                }
+                else
+                {
+                    if (field[y,x].tag == "Player")
+                    {
+                        return new Vector2Int(x, y);
+                    }
+                }
+        }
+        return new Vector2Int(-1, -1);
+    }
+
+    // 
+    bool MoveNumber(string tag, Vector2Int moveFrom, Vector2Int moveTo)
+    {
+        if (moveFrom.x < 0 || moveTo.x >= map.Length)
+        {
+            // å‹•ã‘ãªã„æ¡ä»¶ã‚’å…ˆã«æ›¸ãã€ãƒªã‚¿ãƒ¼ãƒ³ã™ã‚‹ã€‚æ—©æœŸãƒªã‚¿ãƒ¼ãƒ³
+            return false;
+        }
+        if (moveFrom.y < 0 || moveTo.y >= map.Length)
+        {
+            // å‹•ã‘ãªã„æ¡ä»¶ã‚’å…ˆã«æ›¸ãã€ãƒªã‚¿ãƒ¼ãƒ³ã™ã‚‹ã€‚æ—©æœŸãƒªã‚¿ãƒ¼ãƒ³
+            return false;
+        }
+        if (field[moveTo.y,moveTo.x] == null && field[moveTo.y, moveTo.x] == "Box")
+        {
+            Vector2Int velosity = moveTo - moveFrom;
+            bool success = MoveNumber(tag, moveTo, moveTo + velosity);
+            if (!success) 
+            {
+                return false;      
+            }
+
+            // GameObjectã®åº§æ¨™ï¼ˆpositionï¼‰ã‚’ç§»å‹•ã•ã›ã¦ã‹ã‚‰ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã®å…¥ã‚Œæ›¿ãˆ
+            field[moveFrom.y, moveFrom.x].transform.position = IndexToPosition(moveTo);
+            field[moveTo.y, moveTo.x]   = field[moveFrom.y, moveFrom.x];
+            field[moveFrom.y, moveFrom.x] = null;
+            return true;
+        }
+            //if (field[moveTo] == 2)
+            //{
+            //    // ã©ã®æ–¹å‘ã¸ç§»å‹•ã™ã‚‹ã‹ç®—å‡º
+            //    int velocity = moveTo - moveFrom;
+            //    bool success = MoveNumber(2, moveTo, moveTo + velocity);
+            //    if (!success)
+            //    {
+            //        return false;
+            //    }
+            //}
+
+            field[moveTo] = tag;
+        field[moveFrom] = 0;
+        return true;
     }
 
     // Update is called once per frame
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            // ˆÚ“®ˆ—
-            int playerIndex = GetPlayerIndex();
+    //    void Update()
+    //    {
+    //        if (Input.GetKeyDown(KeyCode.RightArrow))
+    //        {
+    //            // ç§»å‹•å‡¦ç†
+    //            int playerIndex = GetPlayerIndex();
 
-            MoveNumber(1, playerIndex, playerIndex + 1);
-            PrintArray();
-        }
+    //            MoveNumber(1, playerIndex, playerIndex + 1);
+    //            PrintArray();
+    //        }
 
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            // ˆÚ“®ˆ—
-            int playerIndex = GetPlayerIndex();
+    //        if (Input.GetKeyDown(KeyCode.LeftArrow))
+    //        {
+    //            // ç§»å‹•å‡¦ç†
+    //            int playerIndex = GetPlayerIndex();
 
-            MoveNumber(1, playerIndex, playerIndex - 1);
-            PrintArray();
-        }
-    }
+    //            MoveNumber(1, playerIndex, playerIndex - 1);
+    //            PrintArray();
+    //        }
+    //    }
 }
