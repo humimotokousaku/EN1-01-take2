@@ -27,7 +27,6 @@ public class GameManagerScript : MonoBehaviour
             map.GetLength(1)
             ];
 
-        // string debugText = "";
         // 変更。二重for分で二次元配列の情報を出力
         for (int y = 0; y < map.GetLength(0); y++)
         {
@@ -35,18 +34,12 @@ public class GameManagerScript : MonoBehaviour
             {
                 if (map[y, x] == 1)
                 {
-                    //// player
-                    //GameObject instance = Instantiate(
-                    //    playerPrefab,
-                    //    new Vector3(x - 2, y, 0),
-                    //    Quaternion.identity
-                    //);
                     field[y, x] = Instantiate(
                         playerPrefab,
                         new Vector3(x, map.GetLength(0) - y, 0),
                         Quaternion.identity
                         );
-                   
+                    
                 }
             }
         }
@@ -58,17 +51,10 @@ public class GameManagerScript : MonoBehaviour
         for (int y = 0; y < field.GetLength(0); y++)
         {
             for (int x = 0; x < field.GetLength(1); x++)
-                if (field[y, x] == null)
-                {
-                    continue;
-                }
-                else
-                {
-                    if (field[y,x].tag == "Player")
-                    {
-                        return new Vector2Int(x, y);
-                    }
-                }
+            {
+                if (field[y, x] == null){ continue; }
+                if (field[y, x].tag == "Player") { return new Vector2Int(x, y); }
+            }
         }
         return new Vector2Int(-1, -1);
     }
@@ -76,66 +62,67 @@ public class GameManagerScript : MonoBehaviour
     // 
     bool MoveNumber(string tag, Vector2Int moveFrom, Vector2Int moveTo)
     {
-        if (moveFrom.x < 0 || moveTo.x >= map.Length)
+        if (moveTo.y < 0 || moveTo.x >= field.GetLength(0))
         {
             // 動けない条件を先に書き、リターンする。早期リターン
             return false;
         }
-        if (moveFrom.y < 0 || moveTo.y >= map.Length)
+        if (moveTo.y < 0 || moveTo.x >= field.GetLength(1))
         {
             // 動けない条件を先に書き、リターンする。早期リターン
             return false;
         }
-        if (field[moveTo.y,moveTo.x] == null && field[moveTo.y, moveTo.x] == "Box")
+
+        if (moveTo.x < 0 || moveTo.y >= field.GetLength(1))
+        {
+            // 動けない条件を先に書き、リターンする。早期リターン
+            return false;
+        }
+        if (moveTo.x < 0 || moveTo.y >= field.GetLength(0))
+        {
+            // 動けない条件を先に書き、リターンする。早期リターン
+            return false;
+        }
+
+        if (field[moveTo.y, moveTo.x] != null && field[moveTo.y, moveTo.x].tag == "Box")
         {
             Vector2Int velosity = moveTo - moveFrom;
             bool success = MoveNumber(tag, moveTo, moveTo + velosity);
-            if (!success) 
+            if (!success)
             {
-                return false;      
+                return false;
             }
-
-            // GameObjectの座標（position）を移動させてからインデックスの入れ替え
-            field[moveFrom.y, moveFrom.x].transform.position = IndexToPosition(moveTo);
-            field[moveTo.y, moveTo.x]   = field[moveFrom.y, moveFrom.x];
-            field[moveFrom.y, moveFrom.x] = null;
-            return true;
         }
-            //if (field[moveTo] == 2)
-            //{
-            //    // どの方向へ移動するか算出
-            //    int velocity = moveTo - moveFrom;
-            //    bool success = MoveNumber(2, moveTo, moveTo + velocity);
-            //    if (!success)
-            //    {
-            //        return false;
-            //    }
-            //}
 
-            field[moveTo] = tag;
-        field[moveFrom] = 0;
+        // GameObjectの座標（position）を移動させてからインデックスの入れ替え
+        field[moveFrom.y, moveFrom.x].transform.position = new Vector3(moveTo.x, field.GetLength(0) - moveTo.y, 0);
+        field[moveTo.y, moveTo.x] = field[moveFrom.y, moveFrom.x];
+        field[moveFrom.y, moveFrom.x] = null;
         return true;
     }
 
     // Update is called once per frame
-    //    void Update()
-    //    {
-    //        if (Input.GetKeyDown(KeyCode.RightArrow))
-    //        {
-    //            // 移動処理
-    //            int playerIndex = GetPlayerIndex();
+    void Update()
+    {
+        Vector2Int playerIndex = GetPlayerIndex();
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            MoveNumber("Player", playerIndex, new Vector2Int(playerIndex.x + 1, playerIndex.y));
+        }
 
-    //            MoveNumber(1, playerIndex, playerIndex + 1);
-    //            PrintArray();
-    //        }
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            MoveNumber("Player", playerIndex, new Vector2Int(playerIndex.x - 1, playerIndex.y));
+        }
 
-    //        if (Input.GetKeyDown(KeyCode.LeftArrow))
-    //        {
-    //            // 移動処理
-    //            int playerIndex = GetPlayerIndex();
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            MoveNumber("Player", playerIndex, new Vector2Int(playerIndex.x, playerIndex.y - 1));
+        }
 
-    //            MoveNumber(1, playerIndex, playerIndex - 1);
-    //            PrintArray();
-    //        }
-    //    }
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            MoveNumber("Player", playerIndex, new Vector2Int(playerIndex.x, playerIndex.y + 1));
+        }
+    }
 }
